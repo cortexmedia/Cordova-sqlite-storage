@@ -539,13 +539,13 @@
     // the websql error code
     switch(code) {
         case SQLITE_ERROR:
-            return SYNTAX_ERR;
+            return WEBSQL_SYNTAX_ERR;
         case SQLITE_FULL:
-            return QUOTA_ERR;
+            return WEBSQL_QUOTA_ERR;
         case SQLITE_CONSTRAINT:
-            return CONSTRAINT_ERR;
+            return WEBSQL_CONSTRAINT_ERR;
         default:
-            return UNKNOWN_ERR;
+            return WEBSQL_UNKNOWN_ERR;
     }
 }
 

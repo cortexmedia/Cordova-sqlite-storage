@@ -12,14 +12,14 @@
 struct sqlite3;
 
 enum WebSQLError {
-    UNKNOWN_ERR = 0,
-    DATABASE_ERR = 1,
-    VERSION_ERR = 2,
-    TOO_LARGE_ERR = 3,
-    QUOTA_ERR = 4,
-    SYNTAX_ERR = 5,
-    CONSTRAINT_ERR = 6,
-    TIMEOUT_ERR = 7
+    WEBSQL_UNKNOWN_ERR = 0,
+    WEBSQL_DATABASE_ERR = 1,
+    WEBSQL_VERSION_ERR = 2,
+    WEBSQL_TOO_LARGE_ERR = 3,
+    WEBSQL_QUOTA_ERR = 4,
+    WEBSQL_SYNTAX_ERR = 5,
+    WEBSQL_CONSTRAINT_ERR = 6,
+    WEBSQL_TIMEOUT_ERR = 7
 };
 typedef int WebSQLError;
 
