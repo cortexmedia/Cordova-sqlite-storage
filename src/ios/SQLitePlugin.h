@@ -28,7 +28,6 @@ typedef int WebSQLError;
 }
 
 @property (nonatomic, copy) NSMutableDictionary *openDBs;
-@property (nonatomic, copy) NSMutableDictionary *appDBPaths;
 
 // Self-test
 -(void) echoStringValue: (CDVInvokedUrlCommand*)command;
