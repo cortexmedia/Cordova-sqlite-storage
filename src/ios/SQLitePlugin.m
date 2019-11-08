@@ -9,6 +9,7 @@
 #import "SQLitePlugin.h"
 
 #import "sqlite3.h"
+#import "CDVFile.h"
 
 #import "PSPDFThreadSafeMutableDictionary.h"
 
@@ -76,6 +77,23 @@
 -(id) getDBPath:(NSString *)dbFile at:(NSString *)atkey {
     if (dbFile == NULL) {
         return NULL;
+    }
+
+    // Attempt to use the File plugin to resolve the destination argument to a
+    // file path.
+    id filePlugin = [self.commandDelegate getCommandInstance:@"File"];
+
+    if (filePlugin != nil) {
+        CDVFilesystemURL* url = [CDVFilesystemURL fileSystemURLWithString:dbFile];
+        NSString *path = [filePlugin filesystemPathForURL:url];
+
+        if (path) {
+            return path;
+        }
+    }
+
+    if ([dbFile hasPrefix:@"file:"]) {
+        return [[NSURL URLWithString:dbFile] path];
     }
 
     NSString *dbdir = [appDBPaths objectForKey:atkey];

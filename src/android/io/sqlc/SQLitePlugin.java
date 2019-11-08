@@ -6,6 +6,7 @@
 
 package io.sqlc;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
@@ -20,11 +21,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaResourceApi;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 public class SQLitePlugin extends CordovaPlugin {
 
     /**
@@ -201,12 +204,7 @@ public class SQLitePlugin extends CordovaPlugin {
             // ASSUMPTION: no db (connection/handle) is already stored in the map
             // [should be true according to the code in DBRunner.run()]
 
-            File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
-
-            if (!dbfile.exists()) {
-                dbfile.getParentFile().mkdirs();
-            }
-
+            final File dbfile = getDatabaseFile(dbname);
             Log.v("info", "Open sqlite db: " + dbfile.getAbsolutePath());
 
             SQLiteAndroidDatabase mydb = old_impl ? new SQLiteAndroidDatabase() : new SQLiteConnectorDatabase();
@@ -291,13 +289,26 @@ public class SQLitePlugin extends CordovaPlugin {
      * @return true if successful or false if an exception was encountered
      */
     private boolean deleteDatabaseNow(String dbname) {
-        File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
+        final File dbfile = getDatabaseFile(dbname);
 
         try {
             return cordova.getActivity().deleteDatabase(dbfile.getAbsolutePath());
         } catch (Exception e) {
             Log.e(SQLitePlugin.class.getSimpleName(), "couldn't delete database", e);
             return false;
+        }
+    }
+
+    private File getDatabaseFile(String dbname) {
+        final Uri dbURI = Uri.parse(dbname);
+
+        if (dbURI.getScheme() == null) {
+            return this.cordova.getActivity().getDatabasePath(dbname);
+        }
+        else {
+            final CordovaResourceApi resourceApi = webView.getResourceApi();
+
+            return resourceApi.mapUriToFile(resourceApi.remapUri(dbURI));
         }
     }
 
