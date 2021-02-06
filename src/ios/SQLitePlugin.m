@@ -7,6 +7,7 @@
  */
 
 #import "SQLitePlugin.h"
+#import "CDVFile.h"
 
 #import "sqlite3.h"
 
@@ -98,18 +99,25 @@
 }
 
 -(id) getDBPath:(NSString *)dbFile at:(NSString *)atkey {
+    NSString *path = nil;
+
     if (dbFile == NULL) {
         return NULL;
     }
 
-    NSString *dbdir = [appDBPaths objectForKey:atkey];
-    if (dbdir == NULL) {
-        // INTERNAL PLUGIN ERROR:
-        return NULL;
+    // Attempt to use the File plugin to resolve the destination argument to a file path.
+    id filePlugin = [self.commandDelegate getCommandInstance:@"File"];
+    if (filePlugin) {
+        CDVFilesystemURL* url = [CDVFilesystemURL fileSystemURLWithString:dbFile];
+        path = [filePlugin filesystemPathForURL:url];
     }
 
-    NSString *dbPath = [dbdir stringByAppendingPathComponent: dbFile];
-    return dbPath;
+    // If that didn't work for any reason, assume file: URL.
+    if (!path && [dbFile hasPrefix:@"file:"]) {
+        path = [[NSURL URLWithString:dbFile] path];
+    }
+
+    return path;
 }
 
 -(void)echoStringValue: (CDVInvokedUrlCommand*)command
@@ -170,7 +178,7 @@
         }
 
         @synchronized(self) {
-            const char *name = [dbname UTF8String];
+            const char *name = [dbname fileSystemRepresentation];
             sqlite3 *db;
 
             DLog(@"open full db path: %@", dbname);

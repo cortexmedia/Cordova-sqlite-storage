@@ -6,6 +6,7 @@
 
 package io.sqlc;
 
+import android.net.Uri;
 import android.util.Log;
 
 import java.io.File;
@@ -20,11 +21,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaResourceApi;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 public class SQLitePlugin extends CordovaPlugin {
 
     /**
@@ -201,7 +204,9 @@ public class SQLitePlugin extends CordovaPlugin {
             // ASSUMPTION: no db (connection/handle) is already stored in the map
             // [should be true according to the code in DBRunner.run()]
 
-            File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
+            final Uri dbURI = getUriForArg(dbname);
+            final CordovaResourceApi resourceApi = webView.getResourceApi();
+            final File dbfile = resourceApi.mapUriToFile(dbURI);
 
             if (!dbfile.exists()) {
                 dbfile.getParentFile().mkdirs();
@@ -291,7 +296,9 @@ public class SQLitePlugin extends CordovaPlugin {
      * @return true if successful or false if an exception was encountered
      */
     private boolean deleteDatabaseNow(String dbname) {
-        File dbfile = this.cordova.getActivity().getDatabasePath(dbname);
+        final Uri dbURI = getUriForArg(dbname);
+        final CordovaResourceApi resourceApi = webView.getResourceApi();
+        final File dbfile = resourceApi.mapUriToFile(dbURI);
 
         try {
             return cordova.getActivity().deleteDatabase(dbfile.getAbsolutePath());
@@ -299,6 +306,13 @@ public class SQLitePlugin extends CordovaPlugin {
             Log.e(SQLitePlugin.class.getSimpleName(), "couldn't delete database", e);
             return false;
         }
+    }
+
+    private Uri getUriForArg(String arg) {
+        CordovaResourceApi resourceApi = webView.getResourceApi();
+        Uri tmpTarget = Uri.parse(arg);
+        return resourceApi.remapUri(
+                tmpTarget.getScheme() != null ? tmpTarget : Uri.fromFile(new File(arg)));
     }
 
     private class DBRunner implements Runnable {
